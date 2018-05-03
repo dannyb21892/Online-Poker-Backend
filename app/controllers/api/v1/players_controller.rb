@@ -1,4 +1,4 @@
-class PlayersController < ApplicationController
+class Api::V1::PlayersController < ApplicationController
 
   def index
     # res = Faraday.get 'https://deckofcardsapi.com/api/deck'
@@ -25,6 +25,19 @@ class PlayersController < ApplicationController
     render json:  card
     # render "HELLO"
     # ren
+  end
+
+  def create
+    @player = Player.find_or_create_by(username: params["username"])
+    # if @player
+      render json: {logged_in: !!@player}
+    # end
+  end
+
+  def login
+    # puts params
+    # render plain: "OK"
+    render json: {login: "hello"}
   end
 
 
