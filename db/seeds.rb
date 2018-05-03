@@ -8,7 +8,7 @@
 player1 = Player.create(username: "dannyb", money: 100)
 player2 = Player.create(username: "mkhan", money: 100)
 
-match1 = Match.create
+match1 = Match.create(owner_id: 1)
 
 ps1m1 = PlayerSlot.create(player_id: player1.id, match_id: match1.id)
 ps2m1 = PlayerSlot.create(player_id: player2.id, match_id: match1.id)
