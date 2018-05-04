@@ -1,6 +1,6 @@
-class CreateCards < ActiveRecord::Migration[5.1]
+class CreateKards < ActiveRecord::Migration[5.1]
   def change
-    create_table :cards do |t|
+    create_table :kards do |t|
       t.string :img_link
       t.string :value
       t.string :suit

@@ -1,3 +1,5 @@
+# require 'ruby-poker'
+
 class Api::V1::MatchesController < ApplicationController
   @@matchsize = 2
 
@@ -26,7 +28,7 @@ class Api::V1::MatchesController < ApplicationController
   def show
     @match = Match.find(params[:id])
     output = []
-    @match.cards.each do |card|
+    @match.kards.each do |card|
       output.push({player: Player.find(card.player_id).username, card: card})
     end
     render json: {
@@ -63,7 +65,7 @@ class Api::V1::MatchesController < ApplicationController
         cards = JSON.parse Faraday.get("https://deckofcardsapi.com/api/deck/#{deck_id}/draw/?count=5").body
         if cards["success"]
           cards["cards"].each do |card|
-            Card.create(match_id: params[:id], player_id: player.id, img_link: card["image"], value: card["value"], suit: card["suit"], code: card["code"] )
+            Kard.create(match_id: params[:id], player_id: player.id, img_link: card["image"], value: card["value"], suit: card["suit"], code: card["code"] )
           end
         end
       end
@@ -71,9 +73,43 @@ class Api::V1::MatchesController < ApplicationController
       render json: {
         response: true
       }
+    elsif params["app_action"] == "judge_game"
+      match = Match.find(params[:id])
+      output = self.judge_game(match)
+      render json: output
     end
 
+  end
 
+  def judge_game(match)
+    cards = {}
+    match.players.each do |player|
+      cards["#{player.username}"] = match.kards.select{|card| card.player_id == player.id}
+    end
+
+    hands = {}
+
+    cards.each do |key, val|
+      hands[key] = PokerHand.new(val.map{|card| card.code[0] == "0" ? "T" + card.code[1] : card.code})
+    end
+
+    winner = {}
+    ranks = {}
+
+    hands.each do |key, val|
+      winner[key] = true
+      ranks[key] = hands[key].rank
+      hands.each do |k, v|
+        compare = hands[key] >= hands[k]
+        winner[key] = winner[key] && compare
+      end
+    end
+
+    return {
+      hands: hands,
+      ranks: ranks,
+      winner: winner
+    }
   end
 
 end
