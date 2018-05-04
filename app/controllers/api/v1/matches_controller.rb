@@ -1,24 +1,75 @@
 class Api::V1::MatchesController < ApplicationController
+  @@matchsize = 2
+
   def index
-    @matches = Match.all.select{|match| match.players.length < 5} #use all games and add spectate mode to games in progress
+    @matches = Match.all.select{|match| match.players.length < @@matchsize} #use all games and add spectate mode to games in progress
     @owners = @matches.map{|match| Player.find(match.owner_id).username} #or use only games that users can join
     @merged = {data: []}
-    @matches.each_with_index{|m, i| @merged[:data].push({match: m, owner: @owners[i]})}
+    @matches.each_with_index{|m, i| @merged[:data].push({match: m, owner: @owners[i], openSlots: @@matchsize-m.players.length})}
     render json: @merged
   end
 
   def create
     @owner = Player.find_by(username: params["owner"])
-    @match = Match.create(owner_id: @owner.id)
+    @match = Match.create(owner_id: @owner.id, active: false)
     PlayerSlot.create(match_id: @match.id, player_id: @owner.id)
     render json: {
       newOpenGame: {
         owner: params["owner"],
-        match: @match
+        match: @match,
+        openSlots: @@matchsize-@match.players.length
       },
       players: @match.players.map{|player| player.username},
-      openSlots: (5-@match.players.length)
     }
+  end
+
+  def show
+    @match = Match.find(params[:id])
+    output = []
+    @match.cards.each do |card|
+      output.push({player: Player.find(card.player_id).username, card: card})
+    end
+    render json: {
+      data: output
+    }
+  end
+
+  def update
+
+    if params["app_action"] == "join_game"
+      player = Player.find_by(username: params["data"]["username"])
+      newSlot = PlayerSlot.new()
+      if !Match.find(params[:id]).players.include?(player)
+        newSlot = PlayerSlot.new(match_id: params[:id], player_id: player.id)
+      end
+      if newSlot.save
+        render json: {
+          response: true
+        }
+      else
+        render json: {
+          response: false
+        }
+      end
+    elsif params["app_action"] == "start_game"
+      deck = JSON.parse Faraday.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1').body
+      deck_id = deck["deck_id"]
+      match = Match.find(params[:id])
+      match.players.each do |player|
+        cards = JSON.parse Faraday.get("https://deckofcardsapi.com/api/deck/#{deck_id}/draw/?count=5").body
+        if cards["success"]
+          cards["cards"].each do |card|
+            Card.create(match_id: params[:id], player_id: player.id, img_link: card["image"], value: card["value"], suit: card["suit"], code: card["code"] )
+          end
+        end
+      end
+      match.active = true
+      render json: {
+        response: true
+      }
+    end
+
+
   end
 
 end

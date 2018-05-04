@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+  resources :cards
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   # get '/players/login', to: 'players#login' #could also add 'update' to above array
   namespace :api do
