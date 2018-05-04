@@ -38,19 +38,23 @@ class Api::V1::MatchesController < ApplicationController
 
     if params["app_action"] == "join_game"
       player = Player.find_by(username: params["data"]["username"])
-      newSlot = PlayerSlot.new()
       if !Match.find(params[:id]).players.include?(player)
         newSlot = PlayerSlot.new(match_id: params[:id], player_id: player.id)
+      # else
+      #   newSlot = PlayerSlot.new()
       end
-      if newSlot.save
-        render json: {
-          response: true
-        }
-      else
-        render json: {
-          response: false
-        }
+      if newSlot
+        newSlot.save
       end
+      render json: {
+        response: true
+      }
+
+      # else
+      #   render json: {
+      #     response: false
+      #   }
+      # end
     elsif params["app_action"] == "start_game"
       deck = JSON.parse Faraday.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1').body
       deck_id = deck["deck_id"]
