@@ -13,7 +13,7 @@ class Api::V1::MatchesController < ApplicationController
 
   def create
     @owner = Player.find_by(username: params["owner"])
-    @match = Match.create(owner_id: @owner.id, active: false)
+    @match = Match.create(owner_id: @owner.id, active: false, judged: false)
     PlayerSlot.create(match_id: @match.id, player_id: @owner.id)
     render json: {
       newOpenGame: {
@@ -31,8 +31,16 @@ class Api::V1::MatchesController < ApplicationController
     @match.kards.each do |card|
       output.push({player: Player.find(card.player_id).username, card: card})
     end
+    if @match.judged
+      results = self.judge_game(match)
+    else
+      results = false
+    end
     render json: {
-      data: output
+      data: output,
+      active: @match.active,
+      judged: @match.judged,
+      judgement: results
     }
   end
 
@@ -71,7 +79,7 @@ class Api::V1::MatchesController < ApplicationController
       end
       match.active = true
       render json: {
-        response: true
+        response: match.active
       }
     elsif params["app_action"] == "judge_game"
       match = Match.find(params[:id])
@@ -105,10 +113,17 @@ class Api::V1::MatchesController < ApplicationController
       end
     end
 
+    match.judged = true
+    match.active = false
+
     return {
-      hands: hands,
-      ranks: ranks,
-      winner: winner
+      judgement: {
+        hands: hands,
+        ranks: ranks,
+        winner: winner
+      },
+      judged: match.judged,
+      active: match.active
     }
   end
 
