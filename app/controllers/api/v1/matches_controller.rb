@@ -13,7 +13,7 @@ class Api::V1::MatchesController < ApplicationController
 
   def create
     @owner = Player.find_by(username: params["owner"])
-    @match = Match.create(owner_id: @owner.id, active: false, judged: false)
+    @match = Match.create(owner_id: @owner.id, active: false, judged: false, pot: 0)
     PlayerSlot.create(match_id: @match.id, player_id: @owner.id)
     render json: {
       newOpenGame: {
@@ -57,7 +57,8 @@ class Api::V1::MatchesController < ApplicationController
         newSlot.save
       end
       render json: {
-        response: true
+        response: true,
+        money: player.money
       }
 
       # else
@@ -118,6 +119,14 @@ class Api::V1::MatchesController < ApplicationController
     match.active = false
     match.save
 
+    winner.each do |key, val|
+      if winner[key]
+        @player = Player.find_by(username: key)
+        @player.money += match.pot / match.players.length
+        @player.save
+      end
+    end
+
     return {
       judgement: {
         hands: hands,
@@ -125,7 +134,8 @@ class Api::V1::MatchesController < ApplicationController
         winner: winner
       },
       judged: match.judged,
-      active: match.active
+      active: match.active,
+      money: @player.money
     }
   end
 

@@ -1,42 +1,51 @@
 class Api::V1::PlayersController < ApplicationController
 
   def index
-    # res = Faraday.get 'https://deckofcardsapi.com/api/deck'
-    # response = ENV["conn"].get("/new/shuffle/?deck_count=1")
-    # response = ENV["conn"]+("/new/shuffle/?deck_count=1")
-    # response = ENV["conn"]
-    # puts ENV[conn]
-    # conn = Faraday.new(:url => 'https://deckofcardsapi.com/api/deck')
-    # conn = Faraday.new(:url => 'https://deckofcardsapi.com/api/deck')
-    # response = conn.get("/new/shuffle/?deck_count=1")
     conn = JSON.parse Faraday.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1').body
-    # response = conn.get("/new/shuffle/?deck_count=1")
     sleep 2
-    deck_id = conn["deck_id"] #bad
-
-    # deck_id =
-    # STDERR.puts `********************#{deck_id}`
-    # card = JSON.parse Faraday.get(`https://deckofcardsapi.com/api/deck/#{deck_id}/draw/?count=1`)
+    deck_id = conn["deck_id"]
     card = JSON.parse Faraday.get("https://deckofcardsapi.com/api/deck/#{deck_id}/draw/?count=1").body
     sleep 2
     STDERR.puts card
-    # render json:  conn.body
-    # render json:  card["cards"][0]["code"]
     render json:  card
-    # render "HELLO"
-    # ren
   end
 
   def create
-    @player = Player.find_or_create_by(username: params["username"])
-    # if @player
-      render json: {logged_in: !!@player}
-    # end
+    @player = Player.find_by(username: params["username"])
+    if !@player
+      @player = Player.create(username: params["username"], money: 100)
+    end
+    render json: {
+      logged_in: !!@player,
+      player_info: {
+        id: @player.id,
+        money: @player.money
+      }
+    }
+  end
+
+  def update
+    @player = Player.find(params[:id])
+    if @player.money >= params["bet"].to_i
+      @player.money -= params["bet"].to_i
+      @player.save
+      @match = Match.find(params["match_id"])
+      @match.pot += params["bet"].to_i
+      @match.save
+      render json: {
+        success: true,
+        money: @player.money,
+        pot: @match.pot
+      }
+    else
+      render json: {
+        success: false,
+        money: @player.money
+      }
+    end
   end
 
   def login
-    # puts params
-    # render plain: "OK"
     render json: {login: "hello"}
   end
 
