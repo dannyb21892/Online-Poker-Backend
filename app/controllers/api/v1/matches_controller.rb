@@ -32,7 +32,7 @@ class Api::V1::MatchesController < ApplicationController
       output.push({player: Player.find(card.player_id).username, card: card})
     end
     if @match.judged
-      results = self.judge_game(match)
+      results = self.judge_game(@match)[:judgement]
     else
       results = false
     end
@@ -78,6 +78,7 @@ class Api::V1::MatchesController < ApplicationController
         end
       end
       match.active = true
+      match.save
       render json: {
         response: match.active
       }
@@ -115,6 +116,7 @@ class Api::V1::MatchesController < ApplicationController
 
     match.judged = true
     match.active = false
+    match.save
 
     return {
       judgement: {
