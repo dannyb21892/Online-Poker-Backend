@@ -90,7 +90,7 @@ class Api::V1::MatchesController < ApplicationController
     hands = {}
 
     cards.each do |key, val|
-      hands[key] = PokerHand.new(val.map{|card| card.code[0] == "0" ? "T" + card.code[1] : card.code})
+      hands[key] = PokerHand.new(val.map{|card| (card[:code][0] == "0" ? ("T" + card[:code][1]) : card[:code])})
     end
 
     winner = {}
