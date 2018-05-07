@@ -122,11 +122,23 @@ class Api::V1::MatchesController < ApplicationController
     match.active = false
     match.save
 
+    #############mr roboto cards
+    # cards["cards"].each do |card|
+    #   Kard.create(match_id: params[:id], player_id: player.id, img_link: card["image"], value: card["value"], suit: card["suit"], code: card["code"] )
+    # end
+    mrroboto = Player.find_by(username: "Mr Roboto")
+    rcards = match.kards.select { |card| card.player_id == mrroboto.id}
+    # puts rcards[0].img_link
+    rcardimages = rcards.collect {|card| card.img_link}
+    # puts rcardimages
+    ###################
+
     return {
       judgement: {
         hands: hands,
         ranks: ranks,
-        winner: winner
+        winner: winner,
+        mrrobotoimages: rcardimages
       },
       judged: match.judged,
       active: match.active
