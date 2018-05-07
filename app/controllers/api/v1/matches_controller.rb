@@ -68,6 +68,10 @@ class Api::V1::MatchesController < ApplicationController
     elsif params["app_action"] == "start_game"
       deck = JSON.parse Faraday.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1').body
       deck_id = deck["deck_id"]
+      #add Mr roboto as a player
+      mrroboto = Player.find_or_create_by(username: "Mr Roboto")
+      newSlot = PlayerSlot.create(match_id: params[:id], player_id: mrroboto.id)
+
       match = Match.find(params[:id])
       match.players.each do |player|
         cards = JSON.parse Faraday.get("https://deckofcardsapi.com/api/deck/#{deck_id}/draw/?count=5").body
