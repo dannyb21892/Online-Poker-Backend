@@ -16,13 +16,22 @@ class Api::V1::PlayersController < ApplicationController
       @player.money = 100
     end
     @player.save
-      render json: {logged_in: !!@player}
+      render json: {logged_in: !!@player, player_id: @player.id}
   end
 
+
+
   def show
-    @player = Player.find_by(username: params["username"])
-    render json: {money: @player.money}
+
+    @player = Player.find(params[:id])
+    money = @player.money
+    render json: {money: money}
   end
+
+  # def update
+  #   @player = Player.find_by(username: params["username"])
+  #   @player.money =
+  # end
 
   # def login
   #   render json: {login: "hello"}
