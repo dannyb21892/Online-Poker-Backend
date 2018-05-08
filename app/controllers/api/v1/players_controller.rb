@@ -26,23 +26,48 @@ class Api::V1::PlayersController < ApplicationController
 
   def update
     @player = Player.find(params[:id])
-    if @player.money >= params["bet"].to_i
-      @player.money -= params["bet"].to_i
-      @player.save
-      @match = Match.find(params["match_id"])
-      @match.pot += params["bet"].to_i
-      @match.save
-      render json: {
-        success: true,
-        money: @player.money,
-        pot: @match.pot
-      }
+    @match = Match.find(params["match_id"])
+    if @player == @match.players.order(id: :asc)[@match.whoseturn]
+      if @player.money >= params["bet"].to_i
+        if 0 <= params["bet"].to_i
+          @player.money -= params["bet"].to_i
+          @player.save
+
+          @match.pot += params["bet"].to_i
+          @match.whoseturn = (@match.whoseturn + 1) % (@match.players.length)
+          @match.save
+          if @match.whoseturn == 0
+            @match.judged = true
+            @match.save
+          end
+          render json: {
+            success: true,
+            whoseturn: @match.whoseturn,
+            money: @player.money,
+            pot: @match.pot
+          }
+        else
+          render json: {
+            success: false,
+            error: "You can not bet negative numbers",
+            money: @player.money
+          }
+        end
+      else
+        render json: {
+          success: false,
+          error: "You can not bet that much",
+          money: @player.money
+        }
+      end
     else
       render json: {
         success: false,
+        error: "It is not yet your turn to bet",
         money: @player.money
       }
     end
+
   end
 
   def login
