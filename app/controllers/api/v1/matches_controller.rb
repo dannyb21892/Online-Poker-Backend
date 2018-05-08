@@ -21,7 +21,8 @@ class Api::V1::MatchesController < ApplicationController
         match: @match,
         openSlots: @@matchsize-@match.players.length
       },
-      players: @match.players.map{|player| player.username},
+      players: @match.players.map{|player| player.username}
+
     }
   end
 
@@ -57,7 +58,7 @@ class Api::V1::MatchesController < ApplicationController
         newSlot.save
       end
       render json: {
-        response: true
+        response: true, money: player.money
       }
 
       # else
