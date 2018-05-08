@@ -13,7 +13,7 @@ class Api::V1::MatchesController < ApplicationController
 
   def create
     @owner = Player.find_by(username: params["owner"])
-    @match = Match.create(owner_id: @owner.id, active: false, judged: false, pot: 0, whoseturn: 0)
+    @match = Match.create(owner_id: @owner.id, active: false, judged: false, pot: 0, whoseturn: 0, maxbet: 0)
     PlayerSlot.create(match_id: @match.id, player_id: @owner.id)
     render json: {
       newOpenGame: {
@@ -43,7 +43,8 @@ class Api::V1::MatchesController < ApplicationController
       whoseturn_match: @match.whoseturn,
       whoseturn_id: whoseturn,
       judged: @match.judged,
-      judgement: results
+      judgement: results,
+      maxbet: @match.maxbet
     }
   end
 

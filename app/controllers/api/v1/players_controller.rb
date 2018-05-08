@@ -35,6 +35,9 @@ class Api::V1::PlayersController < ApplicationController
 
           @match.pot += params["bet"].to_i
           @match.whoseturn = (@match.whoseturn + 1) % (@match.players.length)
+          if params["bet"].to_i > @match.maxbet
+            @match.maxbet = params["bet"].to_i
+          end
           @match.save
           if @match.whoseturn == 0
             @match.judged = true
