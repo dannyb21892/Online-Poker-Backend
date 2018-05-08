@@ -132,14 +132,30 @@ class Api::V1::MatchesController < ApplicationController
     # puts rcards[0].img_link
     rcardimages = rcards.collect {|card| card.img_link}
     # puts rcardimages
+    ################### update money here
+    player = match.players.select {|player| player.username !="Mr Roboto"}
+    puts "************************************"
+    puts player[0].username
+    puts winner #{"wow"=>true, "Mr Roboto"=>false}
+    puts winner["Mr Roboto"] #if true Mr Roboto is winner
+    if winner["Mr Roboto"]
+      player[0].money = player[0].money-10
+    else
+      player[0].money = player[0].money+10
+    end
+    player[0].save
+    puts player[0].money
     ###################
+
+
 
     return {
       judgement: {
         hands: hands,
         ranks: ranks,
         winner: winner,
-        mrrobotoimages: rcardimages
+        mrrobotoimages: rcardimages,
+        money: player[0].money
       },
       judged: match.judged,
       active: match.active
