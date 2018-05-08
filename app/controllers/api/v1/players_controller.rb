@@ -16,7 +16,7 @@ class Api::V1::PlayersController < ApplicationController
       @player.money = 100
     end
     @player.save
-      render json: {logged_in: !!@player, player_id: @player.id}
+      render json: {logged_in: !!@player, player_id: @player.id, player_money: @player.money}
   end
 
 
