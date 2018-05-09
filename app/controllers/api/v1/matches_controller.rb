@@ -1,4 +1,3 @@
-# require 'ruby-poker'
 
 class Api::V1::MatchesController < ApplicationController
   @@matchsize = 2
@@ -51,8 +50,6 @@ class Api::V1::MatchesController < ApplicationController
       player = Player.find_by(username: params["data"]["username"])
       if !Match.find(params[:id]).players.include?(player)
         newSlot = PlayerSlot.new(match_id: params[:id], player_id: player.id)
-      # else
-      #   newSlot = PlayerSlot.new()
       end
       if newSlot
         newSlot.save
@@ -61,11 +58,6 @@ class Api::V1::MatchesController < ApplicationController
         response: true, money: player.money
       }
 
-      # else
-      #   render json: {
-      #     response: false
-      #   }
-      # end
     elsif params["app_action"] == "start_game"
       deck = JSON.parse Faraday.get('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1').body
       deck_id = deck["deck_id"]
@@ -124,20 +116,11 @@ class Api::V1::MatchesController < ApplicationController
     match.save
 
     #############mr roboto cards
-    # cards["cards"].each do |card|
-    #   Kard.create(match_id: params[:id], player_id: player.id, img_link: card["image"], value: card["value"], suit: card["suit"], code: card["code"] )
-    # end
     mrroboto = Player.find_by(username: "Mr Roboto")
     rcards = match.kards.select { |card| card.player_id == mrroboto.id}
-    # puts rcards[0].img_link
     rcardimages = rcards.collect {|card| card.img_link}
-    # puts rcardimages
     ################### update money here
     player = match.players.select {|player| player.username !="Mr Roboto"}
-    puts "************************************"
-    puts player[0].username
-    puts winner #{"wow"=>true, "Mr Roboto"=>false}
-    puts winner["Mr Roboto"] #if true Mr Roboto is winner
     if winner["Mr Roboto"]
       player[0].money = player[0].money-10
     else
@@ -145,9 +128,6 @@ class Api::V1::MatchesController < ApplicationController
     end
     player[0].save
     puts player[0].money
-    ###################
-
-
 
     return {
       judgement: {
